@@ -10,7 +10,11 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
+}
+
+type config struct {
+	commands map[string]cliCommand
 }
 
 // map of supported commands
@@ -32,9 +36,17 @@ func getCommands() map[string]cliCommand {
 
 func main() {
 
+	cfg := config{
+		commands: getCommands(),
+	}
+
+	replLoop(&cfg)
+
+}
+
+func replLoop(cfg *config) {
+
 	scanner := bufio.NewScanner(os.Stdin)
-	SupportedCommands := getCommands()
-	//REPL loop
 	for {
 		fmt.Print("Pokedex > ")
 		//get input as string
@@ -46,9 +58,9 @@ func main() {
 		}
 
 		//look up the callback function in the registry
-		command, ok := SupportedCommands[words[0]]
+		command, ok := cfg.commands[words[0]]
 		if ok {
-			runcmd := command.callback()
+			runcmd := command.callback(cfg)
 			if runcmd != nil {
 				fmt.Println(runcmd)
 			}
@@ -83,16 +95,16 @@ func originalmain() {
 
 }
 
-func commandExit() error {
+func commandExit(cfg *config) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp() error {
-	SupportedCommands := getCommands()
-	fmt.Println("Welcome to the Pokedex!\nUsage:\n")
-	for _, cmd := range SupportedCommands {
+func commandHelp(cfg *config) error {
+	fmt.Println("Welcome to the Pokedex!\nUsage:")
+	fmt.Println()
+	for _, cmd := range cfg.commands {
 		fmt.Printf("%s: %s\n", cmd.name, cmd.description)
 	}
 	return nil
