@@ -72,29 +72,6 @@ func replLoop(cfg *config) {
 
 }
 
-func originalmain() {
-
-	scanner := bufio.NewScanner(os.Stdin)
-
-	for {
-		fmt.Print("Pokedex > ")
-		//get input as string
-		scanner.Scan()
-		input := scanner.Text()
-		words := cleanInput(input) // clean text
-
-		//input := scanner.Scan().Text() // can I combine methods? // no
-
-		//how do I capture the first word input[0]?
-		if len(words) == 0 {
-			continue
-		}
-		fmt.Println("Your command was:", words[0])
-
-	}
-
-}
-
 func commandExit(cfg *config) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
