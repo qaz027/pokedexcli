@@ -30,6 +30,11 @@ func getCommands() map[string]cliCommand {
 			description: "Displays a help message",
 			callback:    commandHelp,
 		},
+		"map": {
+			name:        "map",
+			description: "Displays the list of all locations",
+			callback:    commandMap,
+		},
 	}
 	return SupportedCommands
 }
@@ -84,5 +89,9 @@ func commandHelp(cfg *config) error {
 	for _, cmd := range cfg.commands {
 		fmt.Printf("%s: %s\n", cmd.name, cmd.description)
 	}
+	return nil
+}
+
+func commandMap(cfg *config) error {
 	return nil
 }
