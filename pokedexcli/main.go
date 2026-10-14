@@ -15,6 +15,8 @@ type cliCommand struct {
 
 type config struct {
 	commands map[string]cliCommand
+	previous *string
+	next     *string
 }
 
 // map of supported commands
@@ -32,8 +34,13 @@ func getCommands() map[string]cliCommand {
 		},
 		"map": {
 			name:        "map",
-			description: "Displays the list of all locations",
+			description: "Displays the list of the next 20 locations",
 			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Displays the list of the previous 20 locations",
+			callback:    commandMapb,
 		},
 	}
 	return SupportedCommands
@@ -93,5 +100,9 @@ func commandHelp(cfg *config) error {
 }
 
 func commandMap(cfg *config) error {
+	return nil
+}
+
+func commandMapb(cfg *config) error {
 	return nil
 }
