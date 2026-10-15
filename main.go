@@ -100,9 +100,39 @@ func commandHelp(cfg *config) error {
 }
 
 func commandMap(cfg *config) error {
+	url := "https://pokeapi.co/api/v2/location-area/"
+	if cfg.next != nil {
+		url = *cfg.next
+	}
+
+	page, err := fetchLocationAreas(url)
+	if err != nil {
+		return fmt.Errorf("error with fetch: %w", err)
+	}
+	cfg.next = page.Next
+	cfg.previous = page.Previous
+	for _, area := range page.Results {
+		fmt.Println(area.Name)
+	}
+
 	return nil
 }
 
 func commandMapb(cfg *config) error {
+	if cfg.previous == nil {
+		fmt.Println("you're on the first page")
+		return nil
+	}
+
+	page, err := fetchLocationAreas(*cfg.previous)
+	if err != nil {
+		return fmt.Errorf("error with fetch: %w", err)
+	}
+	cfg.next = page.Next
+	cfg.previous = page.Previous
+	for _, area := range page.Results {
+		fmt.Println(area.Name)
+	}
+
 	return nil
 }
