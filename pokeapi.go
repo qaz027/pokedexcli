@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"pokedexcli/internal/pokecache"
+	"time"
 )
+
+var cache = pokecache.NewCache(5 * time.Second)
 
 type locationArea struct {
 	Name string `json:"name"`
@@ -20,6 +24,18 @@ type locationAreasResponse struct {
 }
 
 func fetchLocationAreas(url string) (locationAreasResponse, error) {
+
+	cached, ok := cache.Get(url)
+
+	if ok {
+		location := locationAreasResponse{}
+
+		err := json.Unmarshal(cached, &location)
+		if err != nil {
+			return locationAreasResponse{}, fmt.Errorf("unmarshal call went haywire: %w", err)
+		}
+		return location, nil
+	}
 
 	res, err := http.Get(url)
 
@@ -40,6 +56,8 @@ func fetchLocationAreas(url string) (locationAreasResponse, error) {
 		return locationAreasResponse{}, fmt.Errorf("error with ReadAll: %w", err)
 
 	}
+	//save body to the cache
+	cache.Add(url, body)
 
 	location := locationAreasResponse{}
 
