@@ -15,8 +15,12 @@ const locationURL = "https://pokeapi.co/api/v2/location-area/"
 const pokemonURL = "https://pokeapi.co/api/v2/pokemon/"
 
 type Pokemon struct {
-	Name           string `json:"name"`
-	BaseExperience int    `json:"base_experience"`
+	Name           string        `json:"name"`
+	BaseExperience int           `json:"base_experience"`
+	Height         int           `json:"height"`
+	Weight         int           `json:"weight"`
+	Stats          []stat        `json:"stats"`
+	Types          []pokemonType `json:"types"`
 }
 
 type locationArea struct {
@@ -24,7 +28,7 @@ type locationArea struct {
 	URL  string `json:"url"`
 }
 
-type pokemonRef struct {
+type namedResource struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }
@@ -41,7 +45,16 @@ type locationAreaResponse struct {
 }
 
 type encounter struct {
-	Pokemon pokemonRef `json:"pokemon"`
+	Pokemon namedResource `json:"pokemon"`
+}
+
+type stat struct {
+	BaseStat int           `json:"base_stat"`
+	Stat     namedResource `json:"stat"`
+}
+
+type pokemonType struct {
+	Type namedResource `json:"type"`
 }
 
 func fetchLocationAreas(url string) (locationAreasResponse, error) {
