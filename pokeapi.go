@@ -11,7 +11,14 @@ import (
 
 var cache = pokecache.NewCache(5 * time.Second)
 
+const baseURL = "https://pokeapi.co/api/v2/location-area/"
+
 type locationArea struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+type pokemon struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }
@@ -21,6 +28,14 @@ type locationAreasResponse struct {
 	Next     *string        `json:"next"`
 	Previous *string        `json:"previous"`
 	Results  []locationArea `json:"results"`
+}
+
+type locationAreaResponse struct {
+	PokemonEncounters []encounter `json:"pokemon_encounters"`
+}
+
+type encounter struct {
+	Pokemon pokemon `json:"pokemon"`
 }
 
 func fetchLocationAreas(url string) (locationAreasResponse, error) {
@@ -64,6 +79,55 @@ func fetchLocationAreas(url string) (locationAreasResponse, error) {
 	err = json.Unmarshal(body, &location)
 	if err != nil {
 		return locationAreasResponse{}, fmt.Errorf("unmarshal call went haywire: %w", err)
+	}
+
+	return location, nil
+
+}
+
+func fetchLocationArea(name string) (locationAreaResponse, error) {
+
+	url := baseURL + name
+
+	cached, ok := cache.Get(url)
+
+	if ok {
+		location := locationAreaResponse{}
+
+		err := json.Unmarshal(cached, &location)
+		if err != nil {
+			return locationAreaResponse{}, fmt.Errorf("unmarshal call went haywire: %w", err)
+		}
+		return location, nil
+	}
+
+	res, err := http.Get(url)
+
+	if err != nil {
+		return locationAreaResponse{}, fmt.Errorf("error with Get response: %w", err)
+
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode > 299 {
+		return locationAreaResponse{}, fmt.Errorf("response failed with status code: %d", res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+
+	if err != nil {
+		return locationAreaResponse{}, fmt.Errorf("error with ReadAll: %w", err)
+
+	}
+	//save body to the cache
+	cache.Add(url, body)
+
+	location := locationAreaResponse{}
+
+	err = json.Unmarshal(body, &location)
+	if err != nil {
+		return locationAreaResponse{}, fmt.Errorf("unmarshal call went haywire: %w", err)
 	}
 
 	return location, nil
