@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -17,6 +18,7 @@ type config struct {
 	commands map[string]cliCommand
 	previous *string
 	next     *string
+	pokedex  map[string]Pokemon
 }
 
 // map of supported commands
@@ -47,6 +49,11 @@ func getCommands() map[string]cliCommand {
 			description: "Displays the named location",
 			callback:    commandExplore,
 		},
+		"catch": {
+			name:        "catch",
+			description: "Try to catch a Pokemon",
+			callback:    commandCatch,
+		},
 	}
 	return SupportedCommands
 }
@@ -55,6 +62,7 @@ func main() {
 
 	cfg := config{
 		commands: getCommands(),
+		pokedex:  make(map[string]Pokemon),
 	}
 
 	replLoop(&cfg)
@@ -89,6 +97,18 @@ func replLoop(cfg *config) {
 
 }
 
+const catchRate = 35
+
+func tryCatch(baseExp int) bool {
+	if baseExp <= 0 {
+		return true
+	}
+
+	roll := rand.Intn(baseExp)
+
+	return roll < catchRate
+}
+
 func commandExit(cfg *config, args []string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
@@ -105,7 +125,7 @@ func commandHelp(cfg *config, args []string) error {
 }
 
 func commandMap(cfg *config, args []string) error {
-	url := baseURL
+	url := locationURL
 	if cfg.next != nil {
 		url = *cfg.next
 	}
@@ -156,6 +176,27 @@ func commandExplore(cfg *config, args []string) error {
 	fmt.Println("Found Pokemon:")
 	for _, enc := range page.PokemonEncounters {
 		fmt.Printf(" - %s\n", enc.Pokemon.Name)
+	}
+	return nil
+}
+
+func commandCatch(cfg *config, args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("you must provide a pokemon name")
+	}
+
+	name := args[0]
+	fmt.Printf("Throwing a Pokeball at %s...\n", name)
+	page, err := fetchPokemon(name)
+	if err != nil {
+		return fmt.Errorf("error with fetch: %w", err)
+	}
+	caught := tryCatch(page.BaseExperience)
+	if caught {
+		fmt.Printf("%s was caught!\n", name)
+		cfg.pokedex[name] = page
+	} else {
+		fmt.Printf("%s escaped!\n", name)
 	}
 	return nil
 }
