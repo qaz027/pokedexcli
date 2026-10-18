@@ -186,6 +186,13 @@ func commandCatch(cfg *config, args []string) error {
 	}
 
 	name := args[0]
+
+	// check if the pokemon exists in the pokedex
+	if _, ok := cfg.pokedex[name]; ok {
+		fmt.Printf("%s is already in the pokedex! No need to throw.\n", name)
+		return nil
+	}
+
 	fmt.Printf("Throwing a Pokeball at %s...\n", name)
 	page, err := fetchPokemon(name)
 	if err != nil {
